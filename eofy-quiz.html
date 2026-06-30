@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOFY Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #111111;
+    --ink: #111111;
+    --muted: #6b7280;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #ffffff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--accent);
+    transition: background 0.3s ease;
+    z-index: 10;
+  }
+
+  .progress {
+    position: fixed;
+    top: 18px;
+    left: 22px;
+    font-size: 0.8rem;
+    color: #c7c7c7;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    z-index: 10;
+    user-select: none;
+  }
+
+  .slide {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6vh 6vw;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .round-label {
+    position: absolute;
+    top: 5vh;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: clamp(0.9rem, 1.6vw, 1.3rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    transition: color 0.3s ease;
+  }
+
+  .main-text {
+    font-weight: 900;
+    line-height: 1.15;
+    max-width: 1100px;
+  }
+
+  .main-text.emoji {
+    font-size: clamp(5rem, 13vw, 11rem);
+  }
+
+  .main-text.statement {
+    font-size: clamp(1.8rem, 4.2vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.3;
+    max-width: 950px;
+  }
+
+  .main-text.track {
+    font-size: clamp(4rem, 11vw, 8rem);
+  }
+
+  .badge {
+    display: inline-block;
+    margin-bottom: 1.6rem;
+    padding: 0.5rem 1.3rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .listen-link {
+    margin-top: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: inherit;
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    padding: 0.85rem 1.8rem;
+    border: none;
+    border-radius: 999px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .listen-link:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+  }
+
+  .listen-fallback {
+    margin-top: 0.9rem;
+    font-size: 0.85rem;
+    color: #c7c7c7;
+  }
+
+  .listen-fallback a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .listen-fallback.urgent {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #dc2626;
+    animation: nudge 0.4s ease 2;
+  }
+
+  .listen-fallback.urgent a {
+    color: #dc2626;
+  }
+
+  @keyframes nudge {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* Break slide */
+  .break-round {
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.8rem;
+  }
+
+  .break-name {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1.2rem;
+  }
+
+  .break-subtitle {
+    font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 1.6rem;
+  }
+
+  .break-instructions {
+    font-size: clamp(1rem, 1.6vw, 1.3rem);
+    color: var(--muted);
+    max-width: 700px;
+  }
+
+  /* Title / End */
+  .title-main {
+    font-size: clamp(3rem, 9vw, 7rem);
+    font-weight: 900;
+    margin-bottom: 1rem;
+  }
+
+  .title-subtitle {
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    color: var(--muted);
+    font-weight: 600;
+    max-width: 700px;
+  }
+
+  .nav-hint {
+    position: absolute;
+    bottom: 5vh;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #c7c7c7;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* Reveal area */
+  .reveal-area {
+    position: fixed;
+    bottom: 4vh;
+    right: 4vw;
+    z-index: 5;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .reveal-btn {
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 0.85rem 1.6rem;
+    font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .reveal-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .reveal-btn.hidden {
+    display: none;
+  }
+
+  .answer-card {
+    display: none;
+    background: #111;
+    color: #fff;
+    border-radius: 18px;
+    padding: 1.4rem 1.8rem;
+    max-width: 380px;
+    text-align: left;
+    cursor: pointer;
+    animation: pop-in 0.25s ease;
+  }
+
+  .answer-card.show {
+    display: block;
+  }
+
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .answer-main {
+    font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+    font-weight: 800;
+    margin: 0 0 0.4rem 0;
+  }
+
+  .answer-detail {
+    font-size: clamp(0.85rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: #cfcfcf;
+    margin: 0;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar"></div>
+<div class="progress" id="progress"></div>
+
+<div id="slides"></div>
+
+<div id="ytPlayer" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
+
+<div class="reveal-area" id="revealArea">
+  <button class="reveal-btn" id="revealBtn">Click here to reveal answer</button>
+  <div class="answer-card" id="answerCard">
+    <p class="answer-main" id="answerMain"></p>
+    <p class="answer-detail" id="answerDetail"></p>
+  </div>
+</div>
+
+<script>
+  const ACCENTS = {
+    neutral: '#111111',
+    sight: '#2563eb',
+    gut: '#ea580c',
+    sound: '#9333ea'
+  };
+
+  const slides = [
+    { type: 'title',
+      title: 'EOFY Quiz',
+      subtitle: '1 point per correct answer · Zanzibar closest guess = 2 points',
+      accent: ACCENTS.neutral },
+
+    { type: 'break', round: 'Round 1', name: 'SIGHT', subtitle: 'Emoji Movies',
+      instructions: 'Rapid fire — first to shout it gets the point!',
+      accent: ACCENTS.sight },
+
+    { type: 'question', round: 'ROUND 1 — SIGHT', accent: ACCENTS.sight, style: 'emoji',
+      main: '🚢🧊💔', answerMain: 'Titanic' },
+    { type: 'question', round: 'ROUND 1 — SIGHT', accent: ACCENTS.sight, style: 'emoji',
+      main: '🐍✈️', answerMain: 'Snakes on a Plane' },
+    { type: 'question', round: 'ROUND 1 — SIGHT', accent: ACCENTS.sight, style: 'emoji',
+      main: '🐦🐦😱', answerMain: 'The Birds' },
+    { type: 'question', round: 'ROUND 1 — SIGHT', accent: ACCENTS.sight, style: 'emoji',
+      main: '🏨🪓✨', answerMain: 'The Shining' },
+
+    { type: 'break', round: 'Round 2', name: 'GUT INSTINCT', subtitle: 'True or False',
+      instructions: 'Vote true or false — fast, 50/50, nobody gets stuck.',
+      accent: ACCENTS.gut },
+
+    { type: 'question', round: 'ROUND 2 — GUT INSTINCT', accent: ACCENTS.gut, style: 'statement', tf: true,
+      main: '"The pressure inside a sealed champagne bottle is higher than the tyre on your car."',
+      answerMain: 'TRUE',
+      answerDetail: '~3x a car tyre (~90 psi vs ~32). It’s why the cork can take an eye out.' },
+    { type: 'question', round: 'ROUND 2 — GUT INSTINCT', accent: ACCENTS.gut, style: 'statement', tf: true,
+      main: '"A bolt of lightning is hotter than the surface of the Sun."',
+      answerMain: 'TRUE',
+      answerDetail: 'Lightning ~30,000°C vs the Sun’s surface ~5,500°C — roughly 5x hotter.' },
+    { type: 'question', round: 'ROUND 2 — GUT INSTINCT', accent: ACCENTS.gut, style: 'statement', tf: true,
+      main: '"A blue whale’s heart weighs more than 100 kg."',
+      answerMain: 'TRUE',
+      answerDetail: 'About 180 kg — roughly the size of a small car.' },
+    { type: 'question', round: 'ROUND 2 — GUT INSTINCT', accent: ACCENTS.gut, style: 'statement', tf: true,
+      main: '"In the 1800s there was a paid job that involved waking people up by shooting dried peas at their windows."',
+      answerMain: 'TRUE',
+      answerDetail: 'The "knocker-upper" — tapped windows with poles or a pea-shooter before alarm clocks were common.' },
+
+    { type: 'bonus', round: 'ROUND 2 — BONUS', accent: ACCENTS.gut,
+      badge: 'Closest guess wins · 2 points',
+      main: 'In minutes, how long was the shortest war in history — the Anglo-Zanzibar War of 1896?',
+      answerMain: '~38 minutes',
+      answerDetail: 'Accept anything 38–45 — sources vary.' },
+
+    { type: 'break', round: 'Round 3', name: 'SOUND', subtitle: 'Name That Altered Song',
+      instructions: 'Listen to the clip, name the original track.',
+      accent: ACCENTS.sound },
+
+    // Sound round clip config — tweak startSeconds (cue point) and clipLength
+    // (how many seconds it plays before auto-stopping) per song as needed.
+    { type: 'sound', round: 'ROUND 3 — SOUND', accent: ACCENTS.sound, track: 1,
+      videoId: 'eseWXiRIA-s', startSeconds: 113, clipLength: 8,
+      link: 'https://www.youtube.com/watch?v=eseWXiRIA-s&t=113s',
+      answerMain: 'Toxic — Britney Spears',
+      answerDetail: '80s cover' },
+    { type: 'sound', round: 'ROUND 3 — SOUND', accent: ACCENTS.sound, track: 2,
+      videoId: 'sNkde038LbM', startSeconds: 0, clipLength: 24,
+      link: 'https://www.youtube.com/watch?v=sNkde038LbM',
+      answerMain: 'Mr. Brightside — The Killers',
+      answerDetail: '800% slower, played at 2x speed' },
+    { type: 'sound', round: 'ROUND 3 — SOUND', accent: ACCENTS.sound, track: 3,
+      videoId: 'MltJnhBLGtw', startSeconds: 64, clipLength: 8,
+      link: 'https://www.youtube.com/watch?v=MltJnhBLGtw&t=64s',
+      answerMain: 'Feel Good Inc. — Gorillaz',
+      answerDetail: '8-bit' },
+    { type: 'sound', round: 'ROUND 3 — SOUND', accent: ACCENTS.sound, track: 4,
+      videoId: 'LzW_-V39G_g', startSeconds: 0, clipLength: 10,
+      link: 'https://www.youtube.com/watch?v=LzW_-V39G_g',
+      answerMain: 'All Star — Smash Mouth',
+      answerDetail: 'Sea shanty' },
+
+    { type: 'end', title: 'That’s a wrap! 🏆', subtitle: 'Time to tally the scores.',
+      accent: ACCENTS.neutral }
+  ];
+
+  let current = 0;
+
+  const slidesContainer = document.getElementById('slides');
+  const topbar = document.getElementById('topbar');
+  const progress = document.getElementById('progress');
+  const revealArea = document.getElementById('revealArea');
+  const revealBtn = document.getElementById('revealBtn');
+  const answerCard = document.getElementById('answerCard');
+  const answerMainEl = document.getElementById('answerMain');
+  const answerDetailEl = document.getElementById('answerDetail');
+
+  function buildSlideEl(slide, index) {
+    const el = document.createElement('div');
+    el.className = 'slide';
+    el.dataset.index = index;
+
+    if (slide.type === 'title') {
+      el.innerHTML = `
+        <div class="title-main">${slide.title}</div>
+        <div class="title-subtitle">${slide.subtitle}</div>
+        <div class="nav-hint">Click anywhere, or press → to begin</div>
+      `;
+    } else if (slide.type === 'break') {
+      el.innerHTML = `
+        <div class="break-round">${slide.round}</div>
+        <div class="break-name">${slide.name}</div>
+        <div class="break-subtitle">${slide.subtitle}</div>
+        <div class="break-instructions">${slide.instructions}</div>
+      `;
+    } else if (slide.type === 'question') {
+      el.innerHTML = `
+        <div class="round-label">${slide.round}</div>
+        ${slide.tf ? '<div class="badge">True or False?</div>' : ''}
+        <div class="main-text ${slide.style}">${slide.main}</div>
+      `;
+    } else if (slide.type === 'bonus') {
+      el.innerHTML = `
+        <div class="round-label">${slide.round}</div>
+        <div class="badge">${slide.badge}</div>
+        <div class="main-text statement">${slide.main}</div>
+      `;
+    } else if (slide.type === 'sound') {
+      el.innerHTML = `
+        <div class="round-label">${slide.round}</div>
+        <div class="main-text track">Track ${slide.track}</div>
+        <button class="listen-link" type="button">▶ Click here to listen</button>
+        <div class="listen-fallback" id="fallback-${index}">Having trouble? <a href="${slide.link}" target="_blank" rel="noopener">Open on YouTube ↗</a></div>
+      `;
+      const listenBtn = el.querySelector('.listen-link');
+      const fallbackEl = el.querySelector('.listen-fallback');
+      listenBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playClip(slide.videoId, slide.startSeconds, slide.clipLength, fallbackEl);
+      });
+    } else if (slide.type === 'end') {
+      el.innerHTML = `
+        <div class="title-main">${slide.title}</div>
+        <div class="title-subtitle">${slide.subtitle}</div>
+      `;
+    }
+
+    return el;
+  }
+
+  slides.forEach((slide, i) => {
+    slidesContainer.appendChild(buildSlideEl(slide, i));
+  });
+
+  const slideEls = Array.from(slidesContainer.children);
+
+  function hasReveal(slide) {
+    return slide.type === 'question' || slide.type === 'bonus' || slide.type === 'sound';
+  }
+
+  function render() {
+    stopClip();
+    slideEls.forEach((el, i) => el.classList.toggle('active', i === current));
+
+    const slide = slides[current];
+    topbar.style.background = slide.accent || ACCENTS.neutral;
+    progress.textContent = `${current + 1} / ${slides.length}`;
+
+    if (hasReveal(slide)) {
+      revealArea.style.display = 'flex';
+      revealBtn.classList.remove('hidden');
+      answerCard.classList.remove('show');
+      answerMainEl.textContent = slide.answerMain || '';
+      answerDetailEl.textContent = slide.answerDetail || '';
+      answerDetailEl.style.display = slide.answerDetail ? 'block' : 'none';
+    } else {
+      revealArea.style.display = 'none';
+    }
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= slides.length) return;
+    current = index;
+    render();
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  revealBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    revealBtn.classList.add('hidden');
+    answerCard.classList.add('show');
+  });
+
+  answerCard.addEventListener('click', (e) => {
+    e.stopPropagation();
+    answerCard.classList.remove('show');
+    revealBtn.classList.remove('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (revealArea.contains(e.target)) return;
+    if (e.target.closest('a')) return;
+    next();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+
+  // --- YouTube audio playback (hidden player, no thumbnail/video shown) ---
+  let ytPlayer = null;
+  let ytReady = false;
+  let pendingPlay = null;
+  let stopTimer = null;
+
+  function onYouTubeIframeAPIReady() {
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '1',
+      width: '1',
+      playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, disablekb: 1, fs: 0 },
+      events: {
+        onReady: () => {
+          ytReady = true;
+          if (pendingPlay) {
+            playClip(pendingPlay.videoId, pendingPlay.startSeconds, pendingPlay.clipLength, pendingPlay.fallbackEl);
+            pendingPlay = null;
+          }
+        }
+      }
+    });
+  }
+
+  function playClip(videoId, startSeconds, clipLength, fallbackEl) {
+    if (!ytReady) {
+      pendingPlay = { videoId, startSeconds, clipLength, fallbackEl };
+      return;
+    }
+    if (stopTimer) clearTimeout(stopTimer);
+    if (fallbackEl) fallbackEl.classList.remove('urgent');
+    ytPlayer.loadVideoById({ videoId, startSeconds });
+    ytPlayer.playVideo();
+    stopTimer = setTimeout(stopClip, clipLength * 1000);
+
+    // Safety net: if the embed silently fails to actually start (e.g. page
+    // opened via file:// instead of a server), draw attention to the manual
+    // fallback link rather than trying to auto-open a new tab (browsers'
+    // popup blockers tend to kill a delayed window.open() anyway).
+    setTimeout(() => {
+      const state = ytPlayer.getPlayerState();
+      if (state !== 1 && state !== 3 && fallbackEl) {
+        fallbackEl.classList.add('urgent');
+      }
+    }, 2500);
+  }
+
+  function stopClip() {
+    if (stopTimer) {
+      clearTimeout(stopTimer);
+      stopTimer = null;
+    }
+    if (ytPlayer && ytReady) {
+      try { ytPlayer.stopVideo(); } catch (e) {}
+    }
+  }
+
+  render();
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
